@@ -1,0 +1,20 @@
+{
+  "name": "php-mysql-template",
+  "version": "1.0.0",
+  "description": "This template designed to provide a DB layer for shared hosting environment without adding VPS subscription",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "jest --runInBand"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.6.1",
+    "mysql2": "^3.5.1",
+    "supertest": "^6.3.3"
+  }
+}
