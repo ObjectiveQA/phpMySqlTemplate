@@ -12,7 +12,6 @@ define("PROJECT_ROOT_PATH", __DIR__ . "/../");
 
 // include core dependencies 
 require_once PROJECT_ROOT_PATH . "/startup/config.php";
-require_once PROJECT_ROOT_PATH . "/startup/logger.php";
 require_once PROJECT_ROOT_PATH . "/routes/BaseController.php";
 require_once PROJECT_ROOT_PATH . "/models/Database.php";
 

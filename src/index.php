@@ -25,8 +25,7 @@ switch ($requestedRoute) {
 try {
     $controller->{$requestMethod}(array_slice($uriElements, 4));
 } catch (Throwable $e) {
-    $logger = new Logger();
-    $logger->logError($e);
+    error_log($e);
 
     $data = json_encode(array('error' => 'Something went wrong! Please contact support.'));
     $httpHeaders = array('Content-Type: application/json', 'HTTP/1.1 500 Internal Server Error');

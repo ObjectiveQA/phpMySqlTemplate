@@ -6,7 +6,7 @@ class Database
     public function __construct()
     {
         if (getenv('TEST_ENV') == 'true') {
-            $dbDatabaseName = DB_TEST_DATABASE_NAME;
+            $dbDatabaseName = DB_DATABASE_NAME . 'Test';
         } else {
             $dbDatabaseName = DB_DATABASE_NAME;
         }
