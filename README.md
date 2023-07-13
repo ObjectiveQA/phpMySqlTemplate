@@ -1,4 +1,4 @@
-## PhpMySqlTemplate
+# PhpMySqlTemplate
 
 This template designed to provide a DB layer for shared hosting environment without adding VPS subscription
 
@@ -8,11 +8,11 @@ The intention is that this is basically a DB wrapper, with room for validation a
 
 This is not designed to be used for a full back end system, and in due course the intention is to build a node template for that purpose.
 
-### Usage
+## Usage
 
 Suggested to copy files from template into new project folder and verify tests run and postman calls are working before working on project from this template.
 
-#### Setup steps
+### Setup steps
 
 Install MAMP if not already installed.
 Migrations are executed manually in PhpMyAdmin.
@@ -28,7 +28,7 @@ MAKE SURE TO Replace the DB name:
 
 Now all the tests should run and postman calls should be successful!
 
-#### To develop from here
+### To develop from here
 
 Update the create-tables.sql file with a relevant migration.
 Routes are registered in app.php.
@@ -49,13 +49,13 @@ Create (if not copied) configDev.json in /src as (adjusting to point to local db
 }
 ```
 
-#### Going live
+### Going live
 
 When running in web host a file configProd.json should be added - the reason for name difference is to avoid accidental overwriting when using FileZilla to move files over.
 
 The index.php is just a pointer and is the only file in /public_html. As such is shouldn't change and deployment can be done simply by replacing the app directory, which goes one level up from /public_html (so that the files themselves are not publically accessible).
 
-### Testing
+## Testing
 
 Unit testing is not envisaged for this wrapper, however API testing is highly recommended, as per the attached test suites.
 
