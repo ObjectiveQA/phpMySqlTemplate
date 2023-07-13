@@ -27,6 +27,22 @@ MAKE SURE TO Replace the DB name:
 (2) in config.php (DB_DATABASE_NAME and DB_TEST_DATABASE_NAME)
 (3) in the test const DB_NAME
 
+Create configDev.json in /src as (adjusting to point to local db):
+
+```json
+{
+    "db": {
+        "host": "localhost:8889",
+        "username": "root",
+        "password": "root",
+        "databaseName": "PhpMySqlTemplate"
+    },
+    "appEnv": "dev"
+}
+```
+
+When running in web host a file configProd.json should be added - the reason for name difference is to avoid accidental overwriting when using FileZilla to move files over.
+
 ### Testing
 
 Unit testing is not envisaged for this wrapper, however API testing is recommended.
