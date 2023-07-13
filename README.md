@@ -12,12 +12,14 @@ This is not designed to be used for a full back end system, and in due course th
 
 Suggested to copy files from template into new project folder and verify tests run and postman calls are working before working on project from this template.
 
-Setup steps:
+#### Setup steps
 
 Install MAMP if not already installed.
 Migrations are executed manually in PhpMyAdmin.
 
 (NOTE: When running the create-tables.sql SQL, there is no USE keyword to ensure the right DB is selected. Ensure that the correct DB is selected when running this migration!)
+
+The extra tables in the template migration don't have functionality associated, they exist to support the fact that this template works from a light DB implementation - other than specification of primary keys with NOT NULL and AUTO_INCREMENT, and of course column types, all relational and validation functionality is left to the code to manage.
 
 MAKE SURE TO Replace the DB name:
 (1) in the DROP/CREATE DB statements at the top of the initial migration
@@ -26,7 +28,7 @@ MAKE SURE TO Replace the DB name:
 
 Now all the tests should run and postman calls should be successful!
 
-To develop from here:
+#### To develop from here
 
 Update the create-tables.sql file with a relevant migration.
 Routes are registered in app.php.
@@ -47,7 +49,7 @@ Create (if not copied) configDev.json in /src as (adjusting to point to local db
 }
 ```
 
-Going live:
+#### Going live
 
 When running in web host a file configProd.json should be added - the reason for name difference is to avoid accidental overwriting when using FileZilla to move files over.
 
