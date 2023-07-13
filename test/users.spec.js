@@ -1,73 +1,10 @@
-const { readFile } = require('fs/promises');
 const request = require('supertest');
-const mysql = require('mysql2/promise');
 const {
     DEV_AUTH_KEY,
-    REQUEST_BASE
+    REQUEST_BASE,
+    getAllDbUsers,
+    initialiseDb
 } = require('./helpers');
-
-const DB_NAME = 'PhpMySqlTemplate';
-const TEST_DB_NAME = `${DB_NAME}Test`;
-
-const deleteAndCreateDb = async() => {
-    const fileData = await readFile('./migrations/20230707112300-create-db.sql');
-    const migrationSql = fileData.toString().replaceAll(DB_NAME, TEST_DB_NAME);
-
-    const connection = await mysql.createConnection({
-        host: 'localhost',
-        port: 8889,
-        user: 'root',
-        password: 'root',
-        multipleStatements: true
-    });
-
-    const result = await connection.query(migrationSql);
-
-    if (result.error) throw new Error(error);
-
-    await connection.end();
-};
-
-const initialiseDb = async(testDataSql = '') => {
-    await deleteAndCreateDb();
-
-    const fileData = await readFile('./migrations/20230707112301-create-tables.sql');
-    const migrationSql = fileData.toString().replaceAll(DB_NAME, TEST_DB_NAME);
-    const querySql = `${migrationSql}${testDataSql}`;
-    
-    const connection = await mysql.createConnection({
-        host: 'localhost',
-        port: 8889,
-        user: 'root',
-        password: 'root',
-        database: TEST_DB_NAME,
-        multipleStatements: true
-    });
-
-    const result = await connection.query(querySql);
-
-    if (result.error) throw new Error(error);
-
-    await connection.end();
-};
-
-const getAllDbUsers = async() => {
-    const connection = await mysql.createConnection({
-        host: 'localhost',
-        port: 8889,
-        user: 'root',
-        password: 'root',
-        database: TEST_DB_NAME
-    });
-
-    const result = await connection.query('SELECT * FROM users');
-
-    if (result.error) throw new Error(error);
-
-    await connection.end();
-
-    return result[0];
-};
 
 describe('/users', () => {
     describe('GET', () => {

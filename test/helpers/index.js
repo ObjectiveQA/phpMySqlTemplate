@@ -1,7 +1,15 @@
-const DEV_AUTH_KEY = 'DevAuthKey1590';
-const REQUEST_BASE = 'http://localhost:8888/src/public_html/index.php';
+const {
+    DEV_AUTH_KEY,
+    REQUEST_BASE,
+} = require('./consts');
+const {
+    getAllDbUsers,
+    initialiseDb
+} = require('./queries');
 
 module.exports = {
     DEV_AUTH_KEY,
-    REQUEST_BASE
+    REQUEST_BASE,
+    getAllDbUsers,
+    initialiseDb
 };
