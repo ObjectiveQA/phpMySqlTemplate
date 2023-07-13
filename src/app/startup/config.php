@@ -7,6 +7,12 @@ if (file_exists('../configProd.json')) {
 
 $config = json_decode($jsonConfig);
 
+if (getenv('AUTH_KEY') != $config->authKey) {
+    header("HTTP/1.1 401 Unauthorized");
+    echo 'Unauthorized.';
+    exit;
+}
+
 define("DB_HOST", $config->db->host);
 define("DB_USERNAME", $config->db->username);
 define("DB_PASSWORD", $config->db->password);

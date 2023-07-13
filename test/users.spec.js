@@ -1,7 +1,10 @@
 const { readFile } = require('fs/promises');
 const request = require('supertest');
 const mysql = require('mysql2/promise');
-const { REQUEST_BASE } = require('./helpers');
+const {
+    DEV_AUTH_KEY,
+    REQUEST_BASE
+} = require('./helpers');
 
 const DB_NAME = 'PhpMySqlTemplate';
 const TEST_DB_NAME = `${DB_NAME}Test`;
@@ -73,6 +76,7 @@ describe('/users', () => {
             await initialiseDb(sql);
             const response = await request(REQUEST_BASE)
                 .get('/users/1')
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(200);
@@ -86,6 +90,7 @@ describe('/users', () => {
             await initialiseDb(sql);
             const response = await request(REQUEST_BASE)
                 .get('/users')
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(200);
@@ -100,6 +105,7 @@ describe('/users', () => {
             await initialiseDb();
             const response = await request(REQUEST_BASE)
                 .get('/users/1')
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(200);
@@ -113,6 +119,7 @@ describe('/users', () => {
             const response = await request(REQUEST_BASE)
                 .post('/users')
                 .send([{ full_name: 'John One', email: 'johnone@example.com' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
             
             const allDbUsers = await getAllDbUsers();
@@ -131,6 +138,7 @@ describe('/users', () => {
                     { full_name: 'John One', email: 'johnone@example.com' },
                     { full_name: 'Jane One', email: 'janeone@example.com' }
                 ])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
             
             expect(response.statusCode).toBe(201);
@@ -149,6 +157,7 @@ describe('/users', () => {
             const response = await request(REQUEST_BASE)
                 .post('/users')
                 .send([{ email: 'johnone@example.com' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(400);
@@ -160,6 +169,7 @@ describe('/users', () => {
             const response = await request(REQUEST_BASE)
                 .post('/users')
                 .send([{ full_name: 'John One' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(400);
@@ -174,6 +184,7 @@ describe('/users', () => {
                     { full_name: 'John One', email: 'johnone@example.com' },
                     { full_name: 'John One', email: 'johnone@example.com' }
                 ])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(400);
@@ -187,6 +198,7 @@ describe('/users', () => {
             const response = await request(REQUEST_BASE)
                 .post('/users')
                 .send([{ full_name: 'John One', email: 'johnone@example.com' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(400);
@@ -202,6 +214,7 @@ describe('/users', () => {
             const response = await request(REQUEST_BASE)
                 .put('/users')
                 .send([{ user_id: 1, full_name: 'John Two', email: 'johntwo@example.com' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(204);
@@ -223,6 +236,7 @@ describe('/users', () => {
                     { user_id: 1, full_name: 'John Two', email: 'johntwo@example.com' },
                     { user_id: 2, full_name: 'Jane Two', email: 'janetwo@example.com' }
                 ])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(204);
@@ -243,6 +257,7 @@ describe('/users', () => {
             const response = await request(REQUEST_BASE)
                 .put('/users')
                 .send([{ user_id: 2, full_name: 'John One', email: 'johntwo@example.com' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
                 expect(response.statusCode).toBe(204);
@@ -262,6 +277,7 @@ describe('/users', () => {
                     { user_id: 1, full_name: 'John One', email: 'janeone@example.com' },
                     { user_id: 2, full_name: 'Jane One', email: 'johnone@example.com' }
                 ])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(204);
@@ -274,6 +290,7 @@ describe('/users', () => {
                     { user_id: 1, full_name: 'John Two', email: 'johntwo@example.com' },
                     { user_id: 2, full_name: 'Jane Two', email: 'johntwo@example.com' }
                 ])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(400);
@@ -287,6 +304,7 @@ describe('/users', () => {
             const response = await request(REQUEST_BASE)
                 .put('/users')
                 .send([{ user_id: 2, full_name: 'Jane One', email: 'johnone@example.com' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(400);
@@ -297,6 +315,7 @@ describe('/users', () => {
             const response = await request(REQUEST_BASE)
                 .put('/users')
                 .send([{ full_name: 'John One', email: 'johnone@example.com' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(400);
@@ -310,6 +329,7 @@ describe('/users', () => {
                     { user_id: 1, full_name: 'John One', email: 'johnone@example.com' },
                     { user_id: 1, full_name: 'John One', email: 'johntwo@example.com' }
                 ])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(400);
@@ -320,6 +340,7 @@ describe('/users', () => {
             const response = await request(REQUEST_BASE)
                 .put('/users')
                 .send([{ user_id: 0, full_name: 'John One', email: 'johnone@example.com' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
                 expect(response.statusCode).toBe(400);
@@ -333,6 +354,7 @@ describe('/users', () => {
             await initialiseDb(sql);
             const response = await request(REQUEST_BASE)
                 .delete('/users/1')
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(204);
@@ -347,6 +369,7 @@ describe('/users', () => {
             await initialiseDb(sql);
             const response = await request(REQUEST_BASE)
                 .delete('/users/2')
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(204);
@@ -359,6 +382,7 @@ describe('/users', () => {
         it('errors if no id provided', async() => {
             const response = await request(REQUEST_BASE)
                 .delete('/users')
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
                 expect(response.statusCode).toBe(400);
@@ -368,6 +392,7 @@ describe('/users', () => {
         it('errors if id provided is not greater than 0', async() => {
             const response = await request(REQUEST_BASE)
                 .delete('/users/0')
+                .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
                 expect(response.statusCode).toBe(400);
