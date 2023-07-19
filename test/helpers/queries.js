@@ -24,23 +24,7 @@ const deleteAndCreateDb = async() => {
     await connection.end();
 };
 
-const getAllDbUsers = async() => {
-    const connection = await mysql.createConnection({
-        host: 'localhost',
-        port: 8889,
-        user: 'root',
-        password: 'root',
-        database: TEST_DB_NAME
-    });
-
-    const result = await connection.query('SELECT * FROM users');
-
-    if (result.error) throw new Error(error);
-
-    await connection.end();
-
-    return result[0];
-};
+const getAllDbUsers = () => queryDb('SELECT * FROM users');
 
 const initialiseDb = async(testDataSql = '') => {
     await deleteAndCreateDb();
@@ -64,6 +48,24 @@ const initialiseDb = async(testDataSql = '') => {
 
     await connection.end();
 };
+
+const queryDb = async(query) => {
+    const connection = await mysql.createConnection({
+        host: 'localhost',
+        port: 8889,
+        user: 'root',
+        password: 'root',
+        database: TEST_DB_NAME
+    });
+
+    const result = await connection.query(query);
+
+    if (result.error) throw new Error(error);
+
+    await connection.end();
+
+    return result[0];
+}
 
 module.exports = {
     getAllDbUsers,

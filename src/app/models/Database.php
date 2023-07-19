@@ -5,7 +5,7 @@ class Database
 
     public function __construct()
     {
-        if (getenv('TEST_ENV') == 'true') {
+        if (getenv('TEST_ENV') === 'true') {
             $dbDatabaseName = DB_DATABASE_NAME . 'Test';
         } else {
             $dbDatabaseName = DB_DATABASE_NAME;
@@ -17,76 +17,161 @@ class Database
         }		
     }
 
-    public function delete($table, $idColumn, $id)
+    private function buildDelete($table, $where)
     {
-        $query = "DELETE FROM $table WHERE $idColumn = $id";
-        $stmt = $this->executeStatement($query);
-        $stmt->close();
+        $whereSql = $this->buildWhere($where);
+
+        return "DELETE FROM $table $whereSql;";
     }
 
-    public function select($table, $where)
+    private function buildInsert($table, $columns, $rows, $insertId)
     {
-        if ($where) {
-            $query = "SELECT * FROM $table WHERE $where";
-        } else {
-            $query = "SELECT * FROM $table";
-        }
-        $stmt = $this->executeStatement($query);
-        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);				
-        $stmt->close();
-        return $result;
-    }
+        $columnsContent = implode(', ', array_map(fn($column) => "`$column->name`", $columns));
+        $columnsString = "($columnsContent)";
 
-    public function insert($table, $columns, $data)
-    {
-        $columns = implode(', ', array_map(fn($column) => "`$column`", $columns));
-        $columnsString = "($columns)";
-        $records = array_map(function($row) {
-            $quotedRow = array_map(fn($datum) => "'$datum'", $row);
-            $joinedRow = implode(', ', $quotedRow);
-            return "($joinedRow)";
-        }, $data);
-        $recordsString = implode(', ', $records);
-        $query = "INSERT INTO $table $columnsString VALUES $recordsString;";
-        $stmt = $this->executeStatement( $query );			
-        $stmt->close();
-    }
+        $rowStrings = array();
 
-    public function update($table, $idColumn, $allIds, $columns, $data)
-    {
-        $set = array();
-        foreach($columns as $column) {
-            $whens = array();
-            foreach($data as $item) {
-                $id = $item->{$idColumn};
-                if (is_numeric($item->{$column})) {
-                    $value = $item->{$column};
-                } else {
-                    $unquotedValue = $item->{$column};
-                    $value = "'$unquotedValue'";
-                }
-                array_push($whens, "WHEN $idColumn = $id THEN $value");
+        foreach($rows as $row) {
+            $datumStrings = array();
+
+            foreach($columns as $column) {
+                array_push($datumStrings, $this->prepareSqlValue($row->{$column->name}, $column->type));
             }
-            $whensString = implode(' ', $whens);
-            array_push($set, "$column = CASE $whensString END");
+
+            $rowContent = implode(', ', $datumStrings);
+            array_push($rowStrings, "($rowContent)");
         }
-        $allIdsString = implode(', ', $allIds);
-        $setString = implode(', ', $set);
-        $query = "UPDATE $table SET $setString WHERE $idColumn IN ($allIdsString);";
-        $stmt = $this->executeStatement( $query );			
-        $stmt->close();
+
+        $initialRowsValue = implode(', ', $rowStrings);
+
+        if (str_contains($initialRowsValue, '<INSERT_ID>')) {
+            if (!$insertId) {
+                throw new Exception("Could not insert as id null, initial rows value: $initialRowsValue");
+            } else {
+                $rowsValue = str_replace('<INSERT_ID>', $insertId, $initialRowsValue);
+            }
+        } else {
+            $rowsValue = $initialRowsValue;
+        }
+
+        return "INSERT INTO $table $columnsString VALUES $rowsValue;";
     }
 
-    private function executeStatement($query = "", $params = [])
+    private function buildSelect($table, $columns, $where)
     {
+        if ($columns && count($columns) > 0) {
+            $columnsString = implode(', ', $columns);
+        } else {
+            $columnsString = '*';
+        }
+
+        $query = "SELECT $columnsString FROM $table";
+
+        if ($where) {
+            $whereSql = $this->buildWhere($where);
+            return "$query $whereSql;";
+        }
+
+        return $query;
+    }
+
+    private function buildUpdate($table, $columns, $row, $where)
+    {
+        $setStrings = array();
+        foreach($columns as $column) {
+            $datum = $this->prepareSqlValue($row->{$column->name}, $column->type);
+            array_push($setStrings, "$column->name = $datum");
+        }
+        $setString = implode(', ', $setStrings);
+
+        return "UPDATE $table SET $setString WHERE $where->column = $where->value;";
+    }
+
+    private function buildQuery($queryData, $insertId = null)
+    {
+        switch ($queryData->statementType) {
+            case 'delete':
+                return $this->buildDelete($queryData->table, $queryData->where);
+            case 'insert':
+                return $this->buildInsert($queryData->table, $queryData->columns, $queryData->rows, $insertId);
+            case 'select':
+                return $this->buildSelect($queryData->table, $queryData->columns, $queryData->where);
+            case 'update':
+                return $this->buildUpdate($queryData->table, $queryData->columns, $queryData->row, $queryData->where);
+            default:
+                $statementType = $queryData->statementType;
+                throw new Exception("Statement type '$statementType' not handled.");
+        }
+    }
+
+    private function buildWhere($where)
+    {
+        if (property_exists($where, 'valueArray') && $where->valueArray) {
+            $operator = 'IN';
+            $values = array_map(fn($datum) => $this->prepareSqlValue($datum, $where->valueType), $where->value);
+            $valueContent = implode(', ', $values);
+            $value = "($valueContent)";
+        } else {
+            $operator = '=';
+            $value = $this->prepareSqlValue($where->value, $where->valueType);
+        }
+
+        return "WHERE $where->column $operator $value";
+    }
+
+    protected function select($queryData)
+    {
+        $query = $this->buildQuery($queryData);
+
         $stmt = $this->connection->prepare($query);
         if($stmt === false) {
             throw New Exception("Unable to do prepared statement: " . $query);
         }
-        if( $params ) {
-            $stmt->bind_param($params[0], $params[1]);
-        }
         $stmt->execute();
-        return $stmt;
+        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);			
+        $stmt->close();
+
+        return $result;
+    }
+
+    protected function executeQueries($queryObjects)
+    {
+        try {
+            $this->connection->begin_transaction();
+
+            $insertId = null;
+
+            foreach($queryObjects as $queryObject) {
+                $querySql = $this->buildQuery($queryObject, $insertId);
+                $stmt = $this->connection->prepare($querySql);
+                    
+                if($stmt === false) {
+                    throw New Exception("Unable to do prepared statement: " . $querySql);
+                }
+                $stmt->execute();
+                
+                if (property_exists($queryObject, 'storeId') && $queryObject->storeId) {
+                    $insertId = $this->connection->insert_id;
+                }
+            }
+
+            $this->connection->commit();
+        } catch (Exception $e) {
+            $this->connection->rollback();
+
+            throw $e;
+        }
+    }
+
+    private function prepareSqlValue($rawValue, $dataType)
+    {
+        switch ($dataType) {
+            case 'text':
+                return "'$rawValue'";
+            case 'number':
+                return $rawValue;
+            default:
+                throw new Exception("Type '$dataType' not handled.");
+        }
     }
 }

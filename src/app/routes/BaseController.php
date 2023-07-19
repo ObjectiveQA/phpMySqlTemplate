@@ -45,5 +45,22 @@ class BaseController
         echo $data;
         exit;
     }
+
+// Validation methods
+
+    /** 
+* Validate ID value. 
+* 
+* @param mixed $data 
+* @param string $httpHeader 
+*/
+    protected function validateId($id)
+    {
+        if (!is_numeric($id) || $id < 1) {
+            return false;
+        }
+
+        return true;
+    }
 }
 ?>

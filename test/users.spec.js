@@ -17,9 +17,8 @@ describe('/users', () => {
                 .set('TEST_ENV', true);
 
             expect(response.statusCode).toBe(200);
-            expect(response.body.length).toBe(1);
-            expect(response.body[0].full_name).toBe('John One');
-            expect(response.body[0].email).toBe('johnone@example.com');
+            expect(response.body.full_name).toBe('John One');
+            expect(response.body.email).toBe('johnone@example.com');
         });
 
         it('gets all users', async() => {
@@ -38,15 +37,15 @@ describe('/users', () => {
             expect(response.body[1].email).toBe('janeone@example.com');
         });
 
-        it('returns an empty array if non existing id provided', async() => {
+        it('errors if non existing id provided', async() => {
             await initialiseDb();
             const response = await request(REQUEST_BASE)
                 .get('/users/1')
                 .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
-            expect(response.statusCode).toBe(200);
-            expect(response.body.length).toBe(0);
+            expect(response.statusCode).toBe(404);
+            expect(response.text).toBe('No user found with id 1.');
         });
     });
 
@@ -101,11 +100,35 @@ describe('/users', () => {
             expect(response.text).toBe("Each request body array item must be an object with 'full_name' and 'email' properties.");
         });
 
+        it('errors if full_name field empty', async() => {
+            await initialiseDb();
+            const response = await request(REQUEST_BASE)
+                .post('/users')
+                .send([{ full_name: '', email: 'johnone@example.com' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
+                .set('TEST_ENV', true);
+
+            expect(response.statusCode).toBe(400);
+            expect(response.text).toBe("Each request body array item must be an object with 'full_name' and 'email' properties.");
+        });
+
         it('errors if email field not provided', async() => {
             await initialiseDb();
             const response = await request(REQUEST_BASE)
                 .post('/users')
                 .send([{ full_name: 'John One' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
+                .set('TEST_ENV', true);
+
+            expect(response.statusCode).toBe(400);
+            expect(response.text).toBe("Each request body array item must be an object with 'full_name' and 'email' properties.");
+        });
+
+        it('errors if email field empty', async() => {
+            await initialiseDb();
+            const response = await request(REQUEST_BASE)
+                .post('/users')
+                .send([{ full_name: 'John One', email: '' }])
                 .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
@@ -187,7 +210,7 @@ describe('/users', () => {
             expect(allDbUsers[1].email).toBe('janetwo@example.com');
         });
 
-        it('reports success if no user found with id provided', async() => {
+        it('errors if no user found with id provided', async() => {
             const sql = "INSERT INTO users (full_name, email) VALUES ('John One', 'johnone@example.com');";
 
             await initialiseDb(sql);
@@ -197,11 +220,57 @@ describe('/users', () => {
                 .set('AUTH_KEY', DEV_AUTH_KEY)
                 .set('TEST_ENV', true);
 
-                expect(response.statusCode).toBe(204);
+                expect(response.statusCode).toBe(400);
+                expect(response.text).toBe("Each request body array item must contain an existing 'user_id'.");
 
-                const allDbUsers = await getAllDbUsers();
+        });
 
-                expect(allDbUsers.length).toBe(1);
+        it('errors if full_name field not provided', async() => {
+            await initialiseDb();
+            const response = await request(REQUEST_BASE)
+                .put('/users')
+                .send([{ email: 'johnone@example.com' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
+                .set('TEST_ENV', true);
+
+            expect(response.statusCode).toBe(400);
+            expect(response.text).toBe("Each request body array item must be an object with 'full_name' and 'email' properties.");
+        });
+
+        it('errors if full_name field empty', async() => {
+            await initialiseDb();
+            const response = await request(REQUEST_BASE)
+                .put('/users')
+                .send([{ full_name: '', email: 'johnone@example.com' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
+                .set('TEST_ENV', true);
+
+            expect(response.statusCode).toBe(400);
+            expect(response.text).toBe("Each request body array item must be an object with 'full_name' and 'email' properties.");
+        });
+
+        it('errors if email field not provided', async() => {
+            await initialiseDb();
+            const response = await request(REQUEST_BASE)
+                .put('/users')
+                .send([{ full_name: 'John One' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
+                .set('TEST_ENV', true);
+
+            expect(response.statusCode).toBe(400);
+            expect(response.text).toBe("Each request body array item must be an object with 'full_name' and 'email' properties.");
+        });
+
+        it('errors if email field empty', async() => {
+            await initialiseDb();
+            const response = await request(REQUEST_BASE)
+                .put('/users')
+                .send([{ full_name: 'John One', email: '' }])
+                .set('AUTH_KEY', DEV_AUTH_KEY)
+                .set('TEST_ENV', true);
+
+            expect(response.statusCode).toBe(400);
+            expect(response.text).toBe("Each request body array item must be an object with 'full_name' and 'email' properties.");
         });
 
         it('allows emails to be switched within the same batch', async() => {

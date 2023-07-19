@@ -1,41 +1,155 @@
 <?php
 class UserModel extends Database
 {
-
-    public function deleteUser($id)
+    public function deleteUsers($userIds)
     {
-        $this->delete('users', 'user_id', $id);
+        $deleteWhere = (object) [
+            'column' => 'user_id',
+            'value' => $userIds,
+            'valueArray' => true,
+            'valueType' => 'number'
+        ];
+
+        $queryObjects = array((object) [
+            'statementType' => 'delete',
+            'table' => 'users',
+            'where' => $deleteWhere
+        ]);
+
+        $this->executeQueries($queryObjects);
     }
 
-    public function getUserByEmail($email)
+    public function getUsersByEmails($emails)
     {
-        return $this->select('users', "email = '$email'");
+        $selectWhere = (object) [
+            'column' => 'email',
+            'value' => $emails,
+            'valueArray' => true,
+            'valueType' => 'text'
+        ];
+
+        $queryObject = (object) [
+            'columns' => null,
+            'statementType' => 'select',
+            'table' => 'users',
+            'where' => $selectWhere
+        ];
+
+        return $this->select($queryObject);
     }
 
-    public function getUserById($id)
+    public function getUserById($userId)
     {
-        return $this->select('users', "user_id = $id");
+        $selectWhere = (object) [
+            'column' => 'user_id',
+            'value' => $userId,
+            'valueType' => 'number'
+        ];
+
+        $queryObject = (object) [
+            'columns' => null,
+            'statementType' => 'select',
+            'table' => 'users',
+            'where' => $selectWhere
+        ];
+
+        $userObjects = $this->select($queryObject);
+
+        if (count($userObjects) === 0) {
+            return null;
+        }
+
+        return $userObjects[0];
     }
 
     public function getUsers()
     {
-        return $this->select('users', 'user_id', null);
+        $queryObject = (object) [
+            'columns' => null,
+            'statementType' => 'select',
+            'table' => 'users',
+            'where' => null
+        ];
+
+        return $this->select($queryObject);
+    }
+
+    public function getUsersById($userIds)
+    {
+        $where = (object) [
+            'column' => 'user_id',
+            'value' => $userIds,
+            'valueArray' => true,
+            'valueType' => 'number'
+        ];
+        $queryObject = (object) [
+            'columns' => null,
+            'statementType' => 'select',
+            'table' => 'users',
+            'where' => $where
+        ];
+
+        return $this->select($queryObject);
     }
 
     public function postUsers($users)
     {
-        $columns = array('full_name', 'email');
-        $data = array_map(fn($user) => array($user->full_name, $user->email), $users);
+        $userColumns = array(
+            (object) ['name' => 'email', 'type' => 'text'],
+            (object) ['name' => 'full_name', 'type' => 'text']
+        );
 
-        $this->insert('users', $columns, $data);
+        $queryObjects = array();
+
+        foreach($users as $user) {
+            $userData = (object) [
+                'email' => $user->email,
+                'full_name' => $user->full_name
+            ];
+            $userQueryObj = (object) [
+                'columns' => $userColumns,
+                'rows' => array($userData),
+                'statementType' => 'insert',
+                'storeId' => true,
+                'table' => 'users'
+            ];
+
+            array_push($queryObjects, $userQueryObj);
+        }
+
+        $this->executeQueries($queryObjects);
     }
 
     public function putUsers($users)
     {
-        $columns = array('full_name', 'email');
-        $data = array_map(fn($user) => array($user->full_name, $user->email), $users);
-        $allIds = array_map(fn($user) => $user->user_id, $users);
+        $userColumns = array(
+            (object) ['name' => 'email', 'type' => 'text'],
+            (object) ['name' => 'full_name', 'type' => 'text']
+        );
 
-        $this->update('users', 'user_id', $allIds, $columns, $users);
+        $queryObjects = array();
+
+        foreach($users as $user) {
+            $userData = (object) [
+                'email' => $user->email,
+                'full_name' => $user->full_name
+            ];
+            $where = (object) [
+                'column' => 'user_id',
+                'value' => $user->user_id,
+                'valueType' => 'number'
+            ];
+            $queryObj = (object) [
+                'columns' => $userColumns,
+                'row' => $userData,
+                'statementType' => 'update',
+                'table' => 'users',
+                'where' => $where
+            ];
+
+            array_push($queryObjects, $queryObj);
+        }
+
+        $this->executeQueries($queryObjects);
     }
 }
